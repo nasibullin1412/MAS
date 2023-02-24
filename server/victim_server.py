@@ -18,6 +18,9 @@ def create_user():
     document_numb = request.args['document_numb']
     age = request.args['age']
     query = f"INSERT INTO users_info( fio, document_numb, age) VALUES ('{fio}', '{document_numb}', {age})"
+    check_sql = CheckingSql(assert_threshold=85, request_id=1)
+    if not check_sql.check_query(query):
+        return ''
     user_db.execute(query)
     print(
         f'''
@@ -36,6 +39,9 @@ def delete_user(document_numb: int):
     :return:
     """
     query = f"DELETE FROM users_info WHERE document_numb={document_numb}"
+    check_sql = CheckingSql(assert_threshold=85, request_id=2)
+    if not check_sql.check_query(query):
+        return ''
     user_db.execute(query)
     print(f'Delete user with document_number={document_numb}')
     print(
@@ -62,8 +68,9 @@ def get_user_by_age():
         end_age_query_part = '' if end_age is None else f'age < {end_age}'
         and_phrase = ' and ' if (start_age_query_part != '' and end_age_query_part != '') else ''
         query = f"SELECT fio FROM users_info WHERE {start_age_query_part}{and_phrase}{end_age_query_part}"
-        check_sql = CheckingSql(assert_threshold=5, request_id=3, db=user_db)
-        check_sql.check_query(query)
+        check_sql = CheckingSql(assert_threshold=85, request_id=3)
+        if not check_sql.check_query(query):
+            return ''
         user_db.execute(query)
         users = user_db.fetchall()
         print(f'Get user by age')
@@ -85,6 +92,9 @@ def update_user_document():
     old_document_numb = request.args['old_document']
     new_document_numb = request.args['new_document']
     query = f"UPDATE users_info SET document_numb={new_document_numb} WHERE document_numb={old_document_numb}"
+    check_sql = CheckingSql(assert_threshold=85, request_id=4)
+    if not check_sql.check_query(query):
+        return ''
     user_db.execute(query)
     print(f'Delete user with userId={id}')
     print(

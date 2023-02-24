@@ -1,3 +1,6 @@
+from typing import List
+
+
 def zeros(shape):
     retval = []
     for x in range(shape[0]):
@@ -52,11 +55,13 @@ def finalize(align1, align2):
 
     identity = float(identity) / len(align1) * 100
 
-    print('Identity =', "%3.3f" % identity, 'percent')
-    print('Score =', score)
-    print(align1)
-    print(symbol)
-    print(align2)
+    #  print('Identity =', "%3.3f" % identity, 'percent')
+    #  print('Score =', score)
+    #  print(align1)
+    #  print(symbol)
+    #  print(align2)
+
+    return identity, symbol
 
 
 def needle(seq1, seq2):
@@ -110,7 +115,7 @@ def needle(seq1, seq2):
         align2 += seq2[j - 1]
         j -= 1
 
-    finalize(align1, align2)
+    return finalize(align1, align2)
 
 
 def water(seq1, seq2):
@@ -162,3 +167,44 @@ def water(seq1, seq2):
             i -= 1
 
     finalize(align1, align2)
+
+
+def progressive_algorithm(examples: List[str]) -> str:
+    matrix = []
+    for i in range(len(examples)):
+        matrix.append([round(needle(examples[i], x)[0]) for x in examples[i:]])
+
+    merge_queue = []
+    max = 100
+    while len(merge_queue) != len(examples):
+        max, current_max_positions = _get_max(matrix, max)
+        for i in current_max_positions:
+            if len(merge_queue) == 0:
+                merge_queue.extend(i)
+            elif len(set(merge_queue).intersection(set(i))) == 1:
+                new_elem = set(set(i)).difference(merge_queue).pop()
+                if new_elem not in merge_queue:
+                    merge_queue.append(new_elem)
+
+    result_str = examples[merge_queue[0]]
+    for i in range(1, len(merge_queue) - 1):
+        result_str = needle(result_str, examples[merge_queue[i]])[1]
+
+    #  print(result_str)
+    return result_str
+
+
+def _get_max(matrix: List[List[int]], previous_max: int) -> (int, list[tuple[int, int]]):
+    current_max = 0
+    for i in matrix:
+        for coef in range(1, len(i)):
+            if current_max < i[coef] < previous_max:
+                current_max = i[coef]
+
+    positions_with_current_max = []
+    for i in range(len(matrix)):
+        for j in range(1, len(matrix[i])):
+            if current_max == matrix[i][j]:
+                positions_with_current_max.append((i, j + i))
+
+    return current_max, positions_with_current_max
