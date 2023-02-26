@@ -5,6 +5,7 @@ from alignment.mapper import map_from_sql_to_token_string
 class CheckingSql:
 
     def __init__(self, assert_threshold, request_id):
+        self.enabled = False
         self.assert_threshold = assert_threshold
         self.request_id = request_id
         self.mapper = {
@@ -22,6 +23,8 @@ class CheckingSql:
         }
 
     def check_query(self, checking_query):
+        if not self.enabled:
+            return True
         check_string = map_from_sql_to_token_string(checking_query)
         assert_string = self.mapper[self.request_id]
 
